@@ -1,0 +1,100 @@
+{
+  "nodes": [
+    {
+      "id": "root",
+      "type": "playbookNode",
+      "position": {
+        "x": 40,
+        "y": 140
+      },
+      "data": {
+        "title": "System Architecture Root",
+        "slug": "root",
+        "category": "App Root",
+        "status": "in-progress",
+        "summary": "High-level project scope, boundaries, and entry point for this workflow."
+      }
+    },
+    {
+      "id": "input-layer",
+      "type": "playbookNode",
+      "position": {
+        "x": 490,
+        "y": 140
+      },
+      "data": {
+        "title": "1. Input & API Layer",
+        "slug": "input-layer",
+        "category": "Core Engine",
+        "status": "todo",
+        "summary": "Request validation, auth guards, and input normalization."
+      }
+    },
+    {
+      "id": "core-logic",
+      "type": "playbookNode",
+      "position": {
+        "x": 940,
+        "y": 140
+      },
+      "data": {
+        "title": "2. Core Business Logic",
+        "slug": "core-logic",
+        "category": "Core Engine",
+        "status": "todo",
+        "summary": "Primary domain rules, state transitions, and pure testable logic."
+      }
+    },
+    {
+      "id": "storage-output",
+      "type": "playbookNode",
+      "position": {
+        "x": 1390,
+        "y": 140
+      },
+      "data": {
+        "title": "3. Storage & Downstream Output",
+        "slug": "storage-output",
+        "category": "Core Engine",
+        "status": "todo",
+        "summary": "Database persistence, events, webhooks, or external API handoff."
+      }
+    },
+    {
+      "id": "custom-node-2754-2",
+      "type": "playbookNode",
+      "position": {
+        "x": 497,
+        "y": 366
+      },
+      "data": {
+        "title": "New Playbook Node",
+        "slug": "custom-node-2754-2",
+        "category": "App Root",
+        "summary": "Document key workflows, checklists, and reusable templates for this step."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-root-input",
+      "source": "root",
+      "target": "input-layer"
+    },
+    {
+      "id": "e-input-core",
+      "source": "input-layer",
+      "target": "core-logic"
+    },
+    {
+      "id": "e-core-output",
+      "source": "core-logic",
+      "target": "storage-output"
+    },
+    {
+      "id": "e-root-custom-node-2754-2",
+      "source": "root",
+      "target": "custom-node-2754-2"
+    }
+  ]
+}

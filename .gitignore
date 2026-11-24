@@ -1,0 +1,19 @@
+# Dependencies & Build Output
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Local Environment
+.env
+.env*.local
+
+# Keep local/company project boards out of the shared tool repository
+boards/*
+!boards/starter-blueprint/
+
+# OS & Logs
+.DS_Store
+Thumbs.db
+*.log

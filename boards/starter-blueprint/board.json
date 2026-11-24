@@ -1,0 +1,7 @@
+{
+  "id": "starter-blueprint",
+  "name": "Starter Architecture Blueprint",
+  "type": "project",
+  "compiledFile": "SPECS.md",
+  "description": "Clean general-purpose software architecture starter board."
+}
