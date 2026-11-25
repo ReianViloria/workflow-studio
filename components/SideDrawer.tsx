@@ -15,6 +15,9 @@ import {
   Trash2,
   PlusCircle,
   CheckCircle2,
+  HelpCircle,
+  Plus,
+  Pencil,
 } from "lucide-react";
 import type { PlaybookNode, NodeStatus } from "@/lib/types";
 import { SmartMarkdownEditor } from "./SmartMarkdownEditor";
@@ -42,6 +45,7 @@ interface SideDrawerProps {
       category: string;
       status?: NodeStatus;
       isPaidAddon?: boolean;
+      questions?: string[];
       summary: string;
     }
   ) => Promise<void>;
@@ -143,6 +147,10 @@ export function SideDrawer({
   const [summary, setSummary] = useState("");
   const [draftMarkdown, setDraftMarkdown] = useState("");
   const [editorStyle, setEditorStyle] = useState<"rich" | "raw">("rich");
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [newQuestion, setNewQuestion] = useState("");
+  const [editingQuestionIdx, setEditingQuestionIdx] = useState<number | null>(null);
+  const [editingQuestionText, setEditingQuestionText] = useState("");
   const [justSaved, setJustSaved] = useState(false);
 
   const updateMode = (nextMode: "read" | "edit") => {
@@ -155,6 +163,9 @@ export function SideDrawer({
     if (selectedNode) {
       setMode(initialMode);
       onModeChange?.(initialMode);
+      setNewQuestion("");
+      setEditingQuestionIdx(null);
+      setEditingQuestionText("");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNode?.id, initialMode]);
@@ -166,6 +177,7 @@ export function SideDrawer({
       setCategory(selectedNode.data.category || "Playbook Node");
       setStatus(selectedNode.data.status || "todo");
       setIsPaidAddon(Boolean(selectedNode.data.isPaidAddon));
+      setQuestions(Array.isArray(selectedNode.data.questions) ? selectedNode.data.questions : []);
       setSummary(selectedNode.data.summary || "");
       setDraftMarkdown(markdown || "");
     }
@@ -176,12 +188,55 @@ export function SideDrawer({
   const slug = selectedNode.data.slug || selectedNode.id;
   const isRoot = selectedNode.id === "root";
 
+  const persistQuestions = async (nextQuestions: string[]) => {
+    setQuestions(nextQuestions);
+    await onSaveContent(slug, markdown || "", {
+      title: selectedNode.data.title,
+      category: selectedNode.data.category || "Playbook Node",
+      ...(boardType === "project"
+        ? {
+            status: selectedNode.data.status || "todo",
+            isPaidAddon: Boolean(selectedNode.data.isPaidAddon),
+          }
+        : {}),
+      questions: nextQuestions,
+      summary: selectedNode.data.summary || "",
+    });
+  };
+
+  const handleAddQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = newQuestion.trim();
+    if (!trimmed || isSaving) return;
+    setNewQuestion("");
+    await persistQuestions([...questions, trimmed]);
+  };
+
+  const handleDeleteQuestion = async (index: number) => {
+    if (isSaving) return;
+    if (editingQuestionIdx === index) {
+      setEditingQuestionIdx(null);
+      setEditingQuestionText("");
+    }
+    await persistQuestions(questions.filter((_, i) => i !== index));
+  };
+
+  const handleCommitEditQuestion = async (index: number) => {
+    const trimmed = editingQuestionText.trim();
+    setEditingQuestionIdx(null);
+    setEditingQuestionText("");
+    if (!trimmed || trimmed === questions[index] || isSaving) return;
+    const next = questions.map((q, i) => (i === index ? trimmed : q));
+    await persistQuestions(next);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSaveContent(slug, draftMarkdown, {
       title: title.trim() || selectedNode.data.title,
       category: category.trim() || "Playbook Node",
       ...(boardType === "project" ? { status, isPaidAddon } : {}),
+      questions,
       summary: summary.trim(),
     });
     setJustSaved(true);
@@ -195,6 +250,7 @@ export function SideDrawer({
       category: selectedNode.data.category || "Playbook Node",
       status: nextStatus,
       isPaidAddon: Boolean(selectedNode.data.isPaidAddon),
+      questions,
       summary: selectedNode.data.summary || "",
     });
   };
@@ -205,6 +261,7 @@ export function SideDrawer({
       category: selectedNode.data.category || "Playbook Node",
       status: selectedNode.data.status || "todo",
       isPaidAddon: !selectedNode.data.isPaidAddon,
+      questions,
       summary: selectedNode.data.summary || "",
     });
   };
@@ -413,6 +470,125 @@ export function SideDrawer({
               </div>
             </div>
           )}
+
+          {/* Dedicated Questions Section */}
+          <section
+            aria-label="Node Questions"
+            className="p-3.5 rounded-xl bg-sky-950/20 border border-sky-500/30 space-y-2.5"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-sky-300">
+                <HelpCircle className="w-3.5 h-3.5 text-sky-400" />
+                <span>Questions ({questions.length})</span>
+              </div>
+              <span className="text-[10px] text-slate-400">
+                Saved to node &amp; {boardType === "playbook" ? "PLAYBOOK.md" : "SPECS.md"}
+              </span>
+            </div>
+
+            {questions.length > 0 ? (
+              <ul className="space-y-1.5">
+                {questions.map((q, idx) => (
+                  <li
+                    key={`${idx}-${q.slice(0, 16)}`}
+                    className="group/q flex items-start gap-2 px-2.5 py-2 rounded-lg bg-slate-950/75 border border-slate-800/90 text-xs text-slate-200"
+                  >
+                    <span className="text-[10px] font-mono text-sky-400 mt-0.5 shrink-0">
+                      {idx + 1}.
+                    </span>
+                    {editingQuestionIdx === idx ? (
+                      <div className="flex-1 flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={editingQuestionText}
+                          onChange={(e) => setEditingQuestionText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              void handleCommitEditQuestion(idx);
+                            } else if (e.key === "Escape") {
+                              setEditingQuestionIdx(null);
+                              setEditingQuestionText("");
+                            }
+                          }}
+                          autoFocus
+                          className="flex-1 px-2 py-1 rounded bg-slate-900 border border-sky-400/60 text-xs text-slate-100 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void handleCommitEditQuestion(idx)}
+                          className="p-1 rounded text-emerald-400 hover:bg-emerald-500/20"
+                          title="Save question"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingQuestionIdx(null);
+                            setEditingQuestionText("");
+                          }}
+                          className="p-1 rounded text-slate-400 hover:bg-slate-800"
+                          title="Cancel edit"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="flex-1 leading-relaxed break-words">{q}</span>
+                        <div className="flex items-center gap-1 opacity-70 group-hover/q:opacity-100 transition-opacity shrink-0">
+                          <button
+                            type="button"
+                            disabled={isSaving}
+                            onClick={() => {
+                              setEditingQuestionIdx(idx);
+                              setEditingQuestionText(q);
+                            }}
+                            className="p-1 rounded text-slate-400 hover:text-sky-300 hover:bg-slate-800 disabled:opacity-40"
+                            title="Edit question"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isSaving}
+                            onClick={() => void handleDeleteQuestion(idx)}
+                            className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 disabled:opacity-40"
+                            title="Delete question"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[11px] text-slate-400 italic">
+                No questions yet. Add open questions or clarifications for this node below.
+              </p>
+            )}
+
+            <form onSubmit={handleAddQuestion} className="flex items-center gap-2 pt-0.5">
+              <input
+                type="text"
+                value={newQuestion}
+                onChange={(e) => setNewQuestion(e.target.value)}
+                placeholder="Add a question for this node..."
+                className="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-950/90 border border-slate-700/80 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-sky-400"
+              />
+              <button
+                type="submit"
+                disabled={isSaving || !newQuestion.trim()}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 border border-sky-400/40 transition-colors disabled:opacity-40"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add
+              </button>
+            </form>
+          </section>
 
           {/* Markdown Renderer with GFM Tables, Checklists & Code Copy Buttons */}
           <article className="prose prose-invert max-w-none text-sm text-slate-200 leading-relaxed">

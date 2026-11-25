@@ -12,7 +12,12 @@
         "slug": "root",
         "category": "App Root",
         "status": "in-progress",
-        "summary": "High-level project scope, boundaries, and entry point for this workflow."
+        "summary": "High-level project scope, boundaries, and entry point for this workflow.",
+        "isPaidAddon": false,
+        "questions": [
+          "Hello test",
+          "Another test"
+        ]
       }
     },
     {

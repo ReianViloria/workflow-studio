@@ -746,6 +746,7 @@ function PlaybookCanvasInner({
         category: string;
         status?: NodeStatus;
         isPaidAddon?: boolean;
+        questions?: string[];
         summary: string;
       }
     ) => {
@@ -763,6 +764,7 @@ function PlaybookCanvasInner({
               category: meta.category,
               status: meta.status,
               isPaidAddon: meta.isPaidAddon,
+              questions: meta.questions,
               summary: meta.summary,
             }),
           }
@@ -781,6 +783,7 @@ function PlaybookCanvasInner({
                       category: meta.category,
                       ...(meta.status ? { status: meta.status } : {}),
                       ...(meta.isPaidAddon !== undefined ? { isPaidAddon: meta.isPaidAddon } : {}),
+                      ...(meta.questions !== undefined ? { questions: meta.questions } : {}),
                       summary: meta.summary,
                     },
                   }

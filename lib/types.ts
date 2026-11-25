@@ -19,6 +19,7 @@ export interface PlaybookNodeData extends Record<string, unknown> {
   status?: NodeStatus;
   isPaidAddon?: boolean;
   isInheritedSkipped?: boolean;
+  questions?: string[];
   summary?: string;
   boardType?: "playbook" | "project";
   hasContractError?: boolean;

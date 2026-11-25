@@ -18,6 +18,7 @@ export async function PUT(
       category?: string;
       status?: NodeStatus;
       isPaidAddon?: boolean;
+      questions?: string[];
       summary?: string;
     };
 
@@ -33,6 +34,9 @@ export async function PUT(
         category: body.category,
         status: body.status,
         isPaidAddon: body.isPaidAddon,
+        questions: Array.isArray(body.questions)
+          ? body.questions.filter((q): q is string => typeof q === "string" && q.trim().length > 0)
+          : undefined,
         summary: body.summary,
       },
       boardId

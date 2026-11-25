@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Ban,
   BadgeDollarSign,
+  HelpCircle,
 } from "lucide-react";
 import type { PlaybookNode, NodeStatus } from "@/lib/types";
 
@@ -150,6 +151,7 @@ function PlaybookNodeCardComponent({ id, data, selected }: NodeProps<PlaybookNod
   const isInheritedSkipped = Boolean(data.isInheritedSkipped);
   const isSkipped = data.status === "skipped" || isInheritedSkipped;
   const isPaidAddon = Boolean(data.isPaidAddon);
+  const questionCount = Array.isArray(data.questions) ? data.questions.length : 0;
   const accent = getCardStyle(data.category, isRoot, isProjectBoard);
   const statusBadge = isProjectBoard
     ? getStatusBadge(isSkipped ? "skipped" : data.status)
@@ -174,10 +176,30 @@ function PlaybookNodeCardComponent({ id, data, selected }: NodeProps<PlaybookNod
           : isHighlighted
           ? "border-indigo-400 bg-slate-900 ring-2 ring-indigo-400/30 shadow-[0_0_26px_-4px_rgba(99,102,241,0.45)]"
           : isSpineStep
-          ? "border-indigo-400/80 bg-gradient-to-br from-indigo-950/90 via-slate-900/95 to-slate-900/95 shadow-[0_0_30px_-4px_rgba(99,102,241,0.5)] hover:border-indigo-300"
-          : `${accent.border} ${accent.glow} hover:bg-slate-800/90`
+          ? `border-indigo-400/80 bg-gradient-to-br from-indigo-950/90 via-slate-900/95 to-slate-900/95 hover:border-indigo-300 ${
+              questionCount > 0
+                ? "ring-2 ring-fuchsia-400/70 shadow-[0_0_28px_-2px_rgba(217,70,239,0.5)]"
+                : "shadow-[0_0_30px_-4px_rgba(99,102,241,0.5)]"
+            }`
+          : `${accent.border} hover:bg-slate-800/90 ${
+              questionCount > 0
+                ? "ring-2 ring-fuchsia-400/70 shadow-[0_0_28px_-2px_rgba(217,70,239,0.5)]"
+                : accent.glow
+            }`
       }`}
     >
+      {questionCount > 0 && (
+        <div
+          className="absolute -top-3 right-3 z-10 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold tracking-wide bg-fuchsia-500 text-white border-2 border-slate-950 shadow-[0_0_16px_rgba(217,70,239,0.75)]"
+          title={`${questionCount} open ${questionCount === 1 ? "question" : "questions"} for PO`}
+        >
+          <HelpCircle className="w-3 h-3 stroke-[2.5]" />
+          <span>
+            {questionCount} {questionCount === 1 ? "Question" : "Questions"}
+          </span>
+        </div>
+      )}
+
       {isSpineStep && !hasContractError && !isSkipped && (
         <div className="h-1.5 w-full rounded-t-[10px] bg-gradient-to-r from-indigo-400 via-violet-400 to-sky-400" />
       )}
@@ -198,23 +220,23 @@ function PlaybookNodeCardComponent({ id, data, selected }: NodeProps<PlaybookNod
           </span>
 
           {hasContractError && !isSkipped ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md border bg-rose-500/25 text-rose-200 border-rose-400/60">
-              <AlertTriangle className="w-2.5 h-2.5" />
-              Contract Error
-            </span>
-          ) : statusBadge ? (
-            <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase rounded-md border ${statusBadge.classes}`}
-            >
-              {statusBadge.icon}
-              {statusBadge.label}
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-400 bg-slate-950/70 px-1.5 py-0.5 rounded border border-slate-800 truncate max-w-[120px]">
-              <FileText className="w-2.5 h-2.5 text-slate-500 shrink-0" />
-              <span className="truncate">{data.slug || id}.md</span>
-            </span>
-          )}
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md border bg-rose-500/25 text-rose-200 border-rose-400/60">
+                <AlertTriangle className="w-2.5 h-2.5" />
+                Contract Error
+              </span>
+            ) : statusBadge ? (
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase rounded-md border ${statusBadge.classes}`}
+              >
+                {statusBadge.icon}
+                {statusBadge.label}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-400 bg-slate-950/70 px-1.5 py-0.5 rounded border border-slate-800 truncate max-w-[120px]">
+                <FileText className="w-2.5 h-2.5 text-slate-500 shrink-0" />
+                <span className="truncate">{data.slug || id}.md</span>
+              </span>
+            )}
         </div>
 
         <h3

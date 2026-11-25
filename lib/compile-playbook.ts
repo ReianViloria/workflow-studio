@@ -244,6 +244,7 @@ export async function saveNodeContent(
     category?: string;
     status?: NodeStatus;
     isPaidAddon?: boolean;
+    questions?: string[];
     summary?: string;
   },
   boardId: string = DEFAULT_BOARD_ID
@@ -263,6 +264,7 @@ export async function saveNodeContent(
       meta.category !== undefined ||
       meta.status !== undefined ||
       meta.isPaidAddon !== undefined ||
+      meta.questions !== undefined ||
       meta.summary !== undefined)
   ) {
     const graphRaw = await fs.readFile(graphPath, "utf-8");
@@ -281,6 +283,7 @@ export async function saveNodeContent(
             ...(meta.category !== undefined ? { category: meta.category } : {}),
             ...(meta.status !== undefined ? { status: meta.status } : {}),
             ...(meta.isPaidAddon !== undefined ? { isPaidAddon: meta.isPaidAddon } : {}),
+            ...(meta.questions !== undefined ? { questions: meta.questions } : {}),
             ...(meta.summary !== undefined ? { summary: meta.summary } : {}),
           },
         };
@@ -372,8 +375,13 @@ export async function compilePlaybook(boardId: string = DEFAULT_BOARD_ID): Promi
       ? ` \`[${node.data.status.toUpperCase()}]\``
       : "";
     const addonTag = node.data.isPaidAddon ? " `[PAID ADD-ON]`" : "";
+    const questionsList = Array.isArray(node.data.questions) ? node.data.questions : [];
+    const questionsTag =
+      questionsList.length > 0
+        ? ` \`[${questionsList.length} ${questionsList.length === 1 ? "QUESTION" : "QUESTIONS"}]\``
+        : "";
     const summaryText = node.data.summary ? ` — *${node.data.summary}*` : "";
-    lines.push(`${indent}- **[${node.data.title}](#node-${slug})**${statusTag}${addonTag} (\`content/${slug}.md\`)${summaryText}`);
+    lines.push(`${indent}- **[${node.data.title}](#node-${slug})**${statusTag}${addonTag}${questionsTag} (\`content/${slug}.md\`)${summaryText}`);
   }
 
   lines.push("", "---", "");
@@ -391,12 +399,20 @@ export async function compilePlaybook(boardId: string = DEFAULT_BOARD_ID): Promi
       ? ` | **Status:** \`${node.data.status.toUpperCase()}\``
       : "";
     const addonInfo = node.data.isPaidAddon ? " | **Scope:** `PAID ADD-ON`" : "";
+    const questionsList = Array.isArray(node.data.questions) ? node.data.questions : [];
 
     lines.push(`<a id="node-${slug}"></a>`, "");
     lines.push(`<!-- NODE_META: id="${node.id}" slug="${slug}" path="${pathTitles.join(" > ")}" -->`);
     lines.push(`> **Graph Path:** ${pathTitles.join(" → ")}  `);
     lines.push(`> **Source File:** \`admin/boards/${board.id}/content/${slug}.md\`${statusInfo}${addonInfo}${outgoing ? ` | **Branches To:** ${outgoing}` : ""}`);
-    lines.push("", rawMd, "", "---", "");
+    lines.push("", rawMd);
+    if (questionsList.length > 0) {
+      lines.push("", `### Open Questions (${questionsList.length})`, "");
+      for (const q of questionsList) {
+        lines.push(`- [ ] ${q}`);
+      }
+    }
+    lines.push("", "---", "");
   }
 
   const compiledOutput = lines.join("\n");

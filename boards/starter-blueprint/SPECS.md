@@ -5,7 +5,7 @@
 
 ## Workflow Graph Hierarchy
 
-- **[System Architecture Root](#node-root)** `[IN-PROGRESS]` (`content/root.md`) — *High-level project scope, boundaries, and entry point for this workflow.*
+- **[System Architecture Root](#node-root)** `[IN-PROGRESS]` `[2 QUESTIONS]` (`content/root.md`) — *High-level project scope, boundaries, and entry point for this workflow.*
   - **[1. Input & API Layer](#node-input-layer)** `[TODO]` (`content/input-layer.md`) — *Request validation, auth guards, and input normalization.*
     - **[2. Core Business Logic](#node-core-logic)** `[TODO]` (`content/core-logic.md`) — *Primary domain rules, state transitions, and pure testable logic.*
       - **[3. Storage & Downstream Output](#node-storage-output)** `[TODO]` (`content/storage-output.md`) — *Database persistence, events, webhooks, or external API handoff.*
@@ -26,6 +26,11 @@ Overview of this project's goals, boundaries, and key constraints.
 ## Scope & Boundaries
 - **In Scope:** Core numbered spine (`1 → 2 → 3`).
 - **Out of Scope / Optional:** Mark unused branches `Skipped` so they are excluded from `SPECS.md`.
+
+### Open Questions (2)
+
+- [ ] Hello test
+- [ ] Another test
 
 ---
 
